@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blozda Messenger</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Auth -->
+    <div id="authScreen">
+      <div class="auth-container">
+        <h1>💬 Blozda</h1>
+        <p>Общайтесь с друзьями бесплатно</p>
+        <div class="auth-tabs">
+          <button class="tab active" onclick="switchTab('login')">Вход</button>
+          <button class="tab" onclick="switchTab('register')">Регистрация</button>
+        </div>
+        <div id="loginForm" class="auth-form active">
+          <div class="input-group"><i class="fas fa-user"></i><input type="text" id="loginUsername" placeholder="Имя пользователя"></div>
+          <div class="input-group"><i class="fas fa-lock"></i><input type="password" id="loginPassword" placeholder="Пароль"></div>
+          <label style="display:flex;align-items:center;gap:8px;color:var(--text2);font-size:14px;"><input type="checkbox" id="rememberMe"> Запомнить меня</label>
+          <button class="btn btn-primary" onclick="login()">Войти <i class="fas fa-arrow-right"></i></button>
+        </div>
+        <div id="registerForm" class="auth-form">
+          <div class="input-group"><i class="fas fa-user"></i><input type="text" id="regUsername" placeholder="Имя пользователя"></div>
+          <div class="input-group"><i class="fas fa-lock"></i><input type="password" id="regPassword" placeholder="Пароль"></div>
+          <div class="input-group"><i class="fas fa-check"></i><input type="password" id="regConfirm" placeholder="Подтвердите пароль"></div>
+          <button class="btn btn-primary" onclick="register()">Зарегистрироваться <i class="fas fa-user-plus"></i></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main -->
+    <div id="mainScreen" style="display:none">
+      <div class="app-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+          <div class="sidebar-header">
+            <div class="profile" onclick="changeAvatar()">
+              <img id="userAvatar" src="">
+              <div class="profile-info"><span id="currentUsername"></span></div>
+            </div>
+            <div class="actions">
+              <button class="icon-btn" onclick="toggleTheme()" title="Тема"><i id="themeIcon" class="fas fa-sun"></i></button>
+              <button class="icon-btn" onclick="showFriendRequests()" title="Заявки в друзья" style="position:relative">
+                <i class="fas fa-user-plus"></i>
+                <span class="badge" id="reqBadge" style="display:none">0</span>
+              </button>
+              <button class="icon-btn" onclick="showCreateGroup()" title="Создать группу"><i class="fas fa-users"></i></button>
+              <button class="icon-btn" onclick="logout()" title="Выйти"><i class="fas fa-sign-out-alt"></i></button>
+            </div>
+          </div>
+          
+          <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Поиск..." oninput="searchUsers()">
+            <div id="searchResults" class="search-results" style="display:none"></div>
+          </div>
+          
+          <!-- Единый список чатов (контакты + группы) -->
+          <div class="chats-list" id="chatsList">
+            <div class="empty-state">
+              <i class="fas fa-comments"></i>
+              <p>Нет чатов</p>
+              <p style="font-size:12px;margin-top:4px">Добавьте контакты или создайте группу</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chat Area -->
+        <div class="chat-area">
+          <div class="chat-placeholder" id="chatPlaceholder">
+            <div>
+              <i class="fas fa-comments"></i>
+              <h2>Добро пожаловать в Blozda</h2>
+              <p>Выберите чат чтобы начать общение</p>
+            </div>
+          </div>
+          
+          <div class="chat-active" id="chatActive" style="display:none">
+            <div class="chat-header">
+              <img id="chatPartnerAvatar" src="">
+              <div class="chat-user-details">
+                <h3 id="chatPartnerName"></h3>
+                <span id="chatPartnerStatus"></span>
+              </div>
+              <div class="chat-actions" id="chatActions">
+                <button class="icon-btn" onclick="startVoiceCall()" title="Звонок"><i class="fas fa-phone"></i></button>
+                <button class="icon-btn" onclick="startVideoCall()" title="Видео"><i class="fas fa-video"></i></button>
+              </div>
+            </div>
+            
+            <div class="messages-container" id="messagesContainer"></div>
+            
+            <div class="recording-bar" id="recordingBar" style="display:none">
+              <div class="recording-dot"></div>
+              <span>Запись голосового сообщения...</span>
+              <span id="recordingTime" style="margin-left:8px">00:00</span>
+              <button onclick="stopRecording()" style="margin-left:auto;background:#fff;color:var(--danger);border:none;padding:6px 16px;border-radius:8px;cursor:pointer;font-weight:600">Стоп</button>
+            </div>
+            
+            <div class="message-composer">
+              <label class="icon-btn" title="Файл"><i class="fas fa-paperclip"></i><input type="file" id="fileInput" style="display:none" onchange="handleFile(this)" multiple></label>
+              <label class="icon-btn" title="Фото"><i class="fas fa-image"></i><input type="file" id="imageInput" style="display:none" accept="image/*" onchange="handleFile(this)" multiple></label>
+              <div class="composer-input"><input type="text" id="messageInput" placeholder="Сообщение..."></div>
+              <button class="icon-btn" id="recordBtn" onclick="toggleRecording()" title="Голосовое"><i class="fas fa-microphone"></i></button>
+              <button class="send-btn" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Call Modal -->
+  <div class="call-modal" id="callModal" style="display:none">
+    <div class="call-videos">
+      <video id="remoteVideo" autoplay playsinline></video>
+      <video id="localVideo" autoplay playsinline muted></video>
+    </div>
+    <div style="text-align:center;color:#fff;padding:12px;font-size:18px">
+      <span id="callPartnerName2"></span>
+      <span id="callDuration" style="margin-left:12px">00:00</span>
+    </div>
+    <div class="call-controls">
+      <button class="call-btn" onclick="toggleMute()" id="muteBtn"><i class="fas fa-microphone"></i></button>
+      <button class="call-btn call-end" onclick="endCall()"><i class="fas fa-phone-slash"></i></button>
+      <button class="call-btn" onclick="toggleVideo()" id="videoToggleBtn"><i class="fas fa-video"></i></button>
+    </div>
+  </div>
+
+  <!-- Incoming Call -->
+  <div class="modal" id="incomingCallModal" style="display:none">
+    <div class="modal-content" style="text-align:center">
+      <img id="incomingCallAvatar" src="" style="width:100px;height:100px;border-radius:50%;margin-bottom:16px;border:3px solid var(--primary)">
+      <h3 id="incomingCallName"></h3>
+      <p style="color:var(--text2)">Входящий звонок...</p>
+      <div style="display:flex;justify-content:center;gap:24px;margin-top:24px">
+        <button class="call-btn call-end" onclick="rejectCall()"><i class="fas fa-phone-slash"></i></button>
+        <button class="call-btn call-accept" onclick="acceptCall()"><i class="fas fa-phone"></i></button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
